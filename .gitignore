@@ -1,5 +1,10 @@
 airflow/*
+!airflow/dags/
 !airflow/dags/insert_data.py
 !airflow/db/
 !airflow/db/main.db
 !airflow/docker-compose.yaml
+
+airflow/dags/__pycache__
+
+.gitignore
