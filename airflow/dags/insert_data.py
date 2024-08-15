@@ -13,7 +13,7 @@ def insert_data_from_api():
     # 로거 설정
     logger = logging.getLogger(__name__)
     try:
-        results = requests.get('https://api.vworld.kr/req/wfs?SERVICE=WFS&REQUEST=GetFeature&TYPENAME=lt_c_uq111&PROPERTYNAME=mnum,sido_cd,sigungu_cd,dyear,dnum,ucode,bon_bun,bu_bun,uname,sido_name,sigg_name,ag_geom&VERSION=1.1.0&MAXFEATURES=10&SRSNAME=EPSG:4019&OUTPUT=GML2&EXCEPTIONS=text/xml&KEY=3AE1D4E0-EBFB-3841-A4DE-EE254A31BD34&FILTER=%3Cogc%3AFilter%3E%0A%20%20%20%20%3Cogc%3APropertyIsLike%20wildCard%3D%22*%22%20singleChar%3D%22_%22%20escapeChar%3D%22%5C%22%3E%0A%20%20%20%20%20%20%20%20%3Cogc%3APropertyName%3Esido_name%3C%2Fogc%3APropertyName%3E%0A%20%20%20%20%20%20%20%20%3Cogc%3ALiteral%3E%EC%9D%B8%EC%B2%9C*%3C%2Fogc%3ALiteral%3E%0A%20%20%20%20%3C%2Fogc%3APropertyIsLike%3E%0A%3C%2Fogc%3AFilter%3E')
+        results = requests.get('https://api.vworld.kr/req/wfs?SERVICE=WFS&REQUEST=GetFeature&TYPENAME=lt_c_up201&PROPERTYNAME=mnum,sido_cd,sigungu_cd,dyear,dnum,ucode,bon_bun,bu_bun,uname,sido_name,sigg_name,ag_geom&VERSION=1.1.0&SRSNAME=EPSG:4019&OUTPUT=GML2&EXCEPTIONS=text/xml&KEY=3AE1D4E0-EBFB-3841-A4DE-EE254A31BD34&MAXFEATURES=1000')
         root = ET.fromstring(results.content)
 
         df = pd.DataFrame(columns=['year', 'sido_name', 'sigg_name', 'uname', 'coordinates'])
@@ -59,7 +59,7 @@ def insert_data_from_api():
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2024, 8, 11),
+    'start_date': datetime(2024, 8, 15),
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,

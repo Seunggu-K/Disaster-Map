@@ -2,7 +2,7 @@ from flask import Flask, render_template
 import pandas as pd
 import sqlite3
 import os
-from flask_cors import CORS
+from flask_cors import CORS # flask 버전을 2.2.2로 해야함 pip install flask==2.2.2
 
 app = Flask(__name__)
 CORS(app)

@@ -15,29 +15,12 @@
   </head>
   <body>
     <h1>Hello, World!</h1>
-    <div id="viewDiv" style="height: 100%; width: 100%"></div>
+    <div>
+      <div id="viewDiv" style="height: 100%; width: 100%"></div>
+      <ul id="areaList"></ul>
+    </div>
   </body>
   <script type="module">
-    // import Map from "https://js.arcgis.com/4.0/esri/Map.js";
-    // import MapView from "https://js.arcgis.com/4.0/esri/views/MapView.js";
-
-    // function webMercatorToLatLon(x, y) {
-    //   let lon = (x / 20037508.34) * 180;
-    //   let lat =
-    //     (Math.atan(Math.exp((y / 20037508.34) * Math.PI)) * 360) / Math.PI - 90;
-
-    //   return { latitude: lat, longitude: lon };
-    // }
-
-    // function webMercatorToLatLon(x, y) {
-    //   let lon = (x / 20037508.34) * 180;
-    //   let lat = (y / 20037508.34) * 180;
-    //   lat =
-    //     (180 / Math.PI) *
-    //     (2 * Math.atan(Math.exp((lat * Math.PI) / 180)) - Math.PI / 2);
-    //   return { latitude: lat, longitude: lon };
-    // }
-
     require([
       "esri/Map",
       "esri/views/MapView",
@@ -59,35 +42,12 @@
       let graphicsLayer = new GraphicsLayer();
       map.add(graphicsLayer);
 
-      // fetch(
-      //   "https://api.vworld.kr/req/wfs?SERVICE=WFS&REQUEST=GetFeature&TYPENAME=lt_c_uq111&PROPERTYNAME=mnum,sido_cd,sigungu_cd,dyear,dnum,ucode,bon_bun,bu_bun,uname,sido_name,sigg_name,ag_geom&VERSION=1.1.0&SRSNAME=EPSG:900913&OUTPUT=GML2&EXCEPTIONS=text/xml&KEY=3AE1D4E0-EBFB-3841-A4DE-EE254A31BD34&FILTER=%3Cogc%3AFilter%3E%0A%20%20%20%20%3Cogc%3APropertyIsLike%20wildCard%3D%22*%22%20singleChar%3D%22_%22%20escapeChar%3D%22%5C%22%3E%0A%20%20%20%20%20%20%20%20%3Cogc%3APropertyName%3Esido_name%3C%2Fogc%3APropertyName%3E%0A%20%20%20%20%20%20%20%20%3Cogc%3ALiteral%3E%EC%9D%B8%EC%B2%9C*%3C%2Fogc%3ALiteral%3E%0A%20%20%20%20%3C%2Fogc%3APropertyIsLike%3E%0A%3C%2Fogc%3AFilter%3E"
-      // )
-      //   .then((response) => response.text())
-      //   .then((data) => {
-      //     console.log("");
-      //   });
-
-      // function fetchData() {
-      //   fetch("http://localhost/api")
-      //     .then((response) => response.text()) // 응답을 텍스트로 변환
-      //     .then((data) => {
-      //       console.log(data); // 콘솔에 데이터 로깅
-      //       // 응답에 따라 DOM을 조작할 수도 있습니다
-
-      //       // document.getElementById("arcgis_map").textContent = data;
-
-      //       return data;
-      //     })
-      //     .catch((error) => console.error("에러 발생:", error));
-      // }
-
-      // const data = fetchData();
-
       async function fetchData() {
         try {
           const response = await fetch("http://localhost/api");
           const data = await response.text(); // 응답을 텍스트로 변환
-          console.log(data); // 콘솔에 데이터 로깅
+          // const data = await response; // 응답을 텍스트로 변환
+          console.log(data.length); // 콘솔에 데이터 로깅
           // 응답에 따라 DOM을 조작할 수도 있습니다
           // document.getElementById("arcgis_map").textContent = data;
           return data;
@@ -98,112 +58,64 @@
 
       // fetchData 함수를 호출하고 결과를 출력
       async function loadData() {
-        const data = await fetchData();
-        console.log("Fetched data:", data);
-        return data;
+        const temp = await fetchData();
+        const data = JSON.parse(temp).data;
+        // console.log(data);
+        data.forEach(function (item) {
+          const coordinates = item.coordinates
+            .split(" ")
+            .map((coord) => coord.split(","));
+
+          const color = item.uname.includes("침수")
+            ? [50, 100, 200, 0.5]
+            : item.uname.includes("미분류")
+            ? [255, 255, 255, 0.5]
+            : [237, 28, 36, 0.5];
+
+          const polygon = {
+            type: "polygon",
+            rings: coordinates,
+          };
+
+          const simpleFillSymbol = {
+            type: "simple-fill",
+            // color: [50, 100, 200, 0.5],
+            color: color,
+            outline: {
+              color: [255, 255, 255],
+              width: 1,
+            },
+          };
+
+          const attributes = {
+            name: item.sido_name + " " + item.sigg_name,
+            description: item.uname,
+          };
+
+          const pointGraphic = new Graphic({
+            geometry: polygon,
+            symbol: simpleFillSymbol,
+            attributes: attributes,
+            popupTemplate: {
+              title: attributes.name,
+              content: attributes.description,
+            },
+          });
+
+          graphicsLayer.add(pointGraphic);
+
+          // li 태그 생성 및 #areaList에 추가
+          const li = document.createElement("li");
+          li.textContent = attributes.name + ": " + attributes.description;
+
+          // 클래스 부여
+          li.classList.add("area-item");
+
+          document.getElementById("areaList").appendChild(li);
+        });
       }
 
-      const data = loadData();
-
-      // 데이터 추가
-      // const data = [
-      //   {
-      //     index: 0,
-      //     year: "2012",
-      //     sido_name: "인천광역시",
-      //     sigg_name: "부평구",
-      //     uname: "일반상업지역",
-      //     latitude1: "126.72139919",
-      //     longitude1: "37.51571927",
-      //     latitude2: "126.72215101",
-      //     longitude2: "37.51615102",
-      //   },
-      //   {
-      //     index: 1,
-      //     year: "2015",
-      //     sido_name: "인천광역시",
-      //     sigg_name: "부평구",
-      //     uname: "일반상업지역",
-      //     latitude1: "126.72215101",
-      //     longitude1: "37.51615102",
-      //     latitude2: "1.41063569617697E7",
-      //     longitude2: "4512953.43108712",
-      //   },
-      //   {
-      //     index: 2,
-      //     year: "2016",
-      //     sido_name: "\uc778\ucc9c\uad11\uc5ed\uc2dc",
-      //     sigg_name: "\uc11c\uad6c",
-      //     uname: "\uc77c\ubc18\uc0c1\uc5c5\uc9c0\uc5ed",
-      //     latitude1: "1.410120457332664E7",
-      //     longitude1: "4511986.10451172",
-      //     latitude2: "1.410163857600853E7",
-      //     longitude2: "4512179.97472773",
-      //   },
-      //   {
-      //     index: 3,
-      //     year: "2005",
-      //     sido_name: "\uc778\ucc9c\uad11\uc5ed\uc2dc",
-      //     sigg_name: "\uc5f0\uc218\uad6c",
-      //     uname: "\uc81c3\uc885\uc77c\ubc18\uc8fc\uac70\uc9c0\uc5ed",
-      //     latitude1: "1.409730803338811E7",
-      //     longitude1: "4494364.61775772",
-      //     latitude2: "1.409856914283117E7",
-      //     longitude2: "4495618.89713746",
-      //   },
-      //   {
-      //     index: 4,
-      //     year: "0000",
-      //     sido_name: "\uc778\ucc9c\uad11\uc5ed\uc2dc",
-      //     sigg_name: "\ub0a8\ub3d9\uad6c",
-      //     uname: "\uc77c\ubc18\uc0c1\uc5c5\uc9c0\uc5ed",
-      //     latitude1: "1.410343213360889E7",
-      //     longitude1: "4496109.33236586",
-      //     latitude2: "1.410384606925774E7",
-      //     longitude2: "4496473.60992793",
-      //   },
-      //   {
-      //     index: 5,
-      //     year: "0000",
-      //     sido_name: "\uc778\ucc9c\uad11\uc5ed\uc2dc",
-      //     sigg_name: "\ub0a8\ub3d9\uad6c",
-      //     uname: "\uc804\uc6a9\uacf5\uc5c5\uc9c0\uc5ed",
-      //     coordinates: "1.410533130149545E7",
-      //   },
-      // ];
-
-      data.forEach(function (item) {
-        const polygon = {
-          type: "polygon",
-          rings: item.coordinates.split(),
-        };
-
-        const simpleFillSymbol = {
-          type: "simple-fill",
-          color: [50, 100, 200, 0.5],
-          outline: {
-            color: [255, 255, 255],
-            width: 1,
-          },
-        };
-
-        const attributes = {
-          name: item.sido_name + " " + item.sigg_name,
-          description: item.uname,
-        };
-
-        let pointGraphic = new Graphic({
-          geometry: polygon,
-          symbol: simpleFillSymbol,
-          attributes: attributes,
-          popupTemplate: {
-            title: attributes.name,
-            content: attributes.description,
-          },
-        });
-
-        graphicsLayer.add(pointGraphic);
-      });
+      loadData();
     });
   </script>
 </html>
