@@ -13,7 +13,7 @@ def insert_data_from_api():
     # 로거 설정
     logger = logging.getLogger(__name__)
     try:
-        results = requests.get('https://api.vworld.kr/req/wfs?SERVICE=WFS&REQUEST=GetFeature&TYPENAME=lt_c_up201&PROPERTYNAME=mnum,sido_cd,sigungu_cd,dyear,dnum,ucode,bon_bun,bu_bun,uname,sido_name,sigg_name,ag_geom&VERSION=1.1.0&SRSNAME=EPSG:4019&OUTPUT=GML2&EXCEPTIONS=text/xml&KEY=3AE1D4E0-EBFB-3841-A4DE-EE254A31BD34&MAXFEATURES=1000')
+        results = requests.get('YOUR_API_ADDRESS')
         root = ET.fromstring(results.content)
 
         df = pd.DataFrame(columns=['year', 'sido_name', 'sigg_name', 'uname', 'coordinates'])
